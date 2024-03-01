@@ -41,7 +41,7 @@ class KNNClassifier:
             self.correct = 0
             self.incorrect = 0
         for idx, testPoint in enumerate(self.test):
-            mostFrequentClassLabel = utilities.retrieveKPoints(testPoint, self.train, self.dist_metric, self.k)
+            mostFrequentClassLabel = utilities.getMajorClass(testPoint, self.train, self.dist_metric, self.k)
             # Compare the class label with the most frequent class label
             if testPoint[-1] == mostFrequentClassLabel:
                 self.correct = self.correct + 1

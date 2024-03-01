@@ -1,5 +1,3 @@
-import sys
-
 import numpy as np
 from sklearn import metrics
 from collections import Counter
@@ -19,19 +17,29 @@ class ENNSmoothFilter:
     def fit(self, data):
         self.data = np.array(data)
 
-    def metrics(self):
-        print(" ----------------ENN----------------")
-        print("New data length: ", len(self.resultSet))
-        print("Old data length: ", len(self.data))
-        print("Removed points: ", len(self.removed))
-        print(" ----------------ENN----------------")
+    def metrics(self, debug=True, display=True):
+        if debug:
+            print(" ----------------ENN----------------")
+            print("New data length: ", len(self.resultSet))
+            print("Old data length: ", len(self.data))
+            print("Removed points: ", len(self.removed))
+            print(" ----------------ENN----------------")
+        if display:
+            print("----------------")
 
     def evaluate(self):
         self.resultSet = []
         self.removed = []
+        justIndexes = []
+
         for idx, dataPoint in enumerate(self.data):
-            mostFrequentClassLabel = utilities.retrieveKPoints(dataPoint, self.data, self.dist_metric, self.k)
+            # Removed point from data
+            justIndexes.append(idx)
+            print(justIndexes)
+            dataWithoutPoint = np.delete(self.data, justIndexes, 0)
+            mostFrequentClassLabel = utilities.getMajorClass(dataPoint, dataWithoutPoint, self.dist_metric, self.k)
             if dataPoint[-1] == mostFrequentClassLabel:
+                justIndexes.pop()
                 self.resultSet.append(dataPoint)
             else:
-                self.removed.append(dataPoint)
+                self.removed.append({"point": dataPoint, "index": idx})

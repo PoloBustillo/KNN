@@ -1,16 +1,16 @@
 import sys
 from collections import Counter
-from math import sqrt
 
 import numpy as np
 
 
 def euclidean(point, data):
-    """Euclidean distance between a point  & data"""
+    """Euclidean distance between a point & data"""
     return np.sqrt(np.sum((point - data) ** 2, axis=1))
 
 
-def retrieveKPoints(dataPoint, data, dist_metric=euclidean, k=3):
+def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):
+    """Retrieve from data the the most k common distance measures"""
     # Calculate the distance without the class label
     distances = dist_metric(dataPoint[:-1], data[:, :-1])
     # Add class label, sort and retrieve first k elements
@@ -20,6 +20,13 @@ def retrieveKPoints(dataPoint, data, dist_metric=euclidean, k=3):
     classCounts = Counter(kClosedClasses)
     # Find the most frequent class label
     return classCounts.most_common(1)[0][0]
+
+
+def createHeaders(prefix='X', size=100):
+    """Create the data headers to be displayed"""
+    columnsArray = np.arange(0, size, 1, dtype=int)
+    f = np.vectorize(lambda t: prefix + str(t))
+    return f(columnsArray)
 
 
 def read_file(path="./Dt1.txt"):
