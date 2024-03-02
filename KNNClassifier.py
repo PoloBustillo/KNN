@@ -24,7 +24,7 @@ class KNNClassifier:
         self.train = np.array(train)
         self.test = np.array(test)
 
-    def metrics(self):
+    def metrics(self, debug=True, display=True):
         print("Correctly Classified Instances:", self.correct, " / ", str("%.5f" % (self.accuracy * 100)) + "%")
         print("Incorrectly Classified Instances :", self.incorrect, " / ",
               str("%.5f" % ((1 - self.accuracy) * 100)) + "%")

@@ -9,6 +9,16 @@ def euclidean(point, data):
     return np.sqrt(np.sum((point - data) ** 2, axis=1))
 
 
+def displayTwoAttributes(firstColumn, secondColumn, data):
+    """Display two attributes of data"""
+    print(data[:, firstColumn])
+    print(data[:, secondColumn])
+    # two_vars = [dataAndClasses.values[:, ij_min[0]], dataAndClasses.values[:, ij_min[1]]]
+    # fig = px.scatter(two_vars, x=ij_min[0], y=ij_min[1], symbol=classes, color=classes)
+    # fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=1, x=0, ticks="outside"))
+    # fig.show()
+
+
 def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):
     """Retrieve from data the the most k common distance measures"""
     # Calculate the distance without the class label

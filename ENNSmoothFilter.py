@@ -35,7 +35,6 @@ class ENNSmoothFilter:
         for idx, dataPoint in enumerate(self.data):
             # Removed point from data
             justIndexes.append(idx)
-            print(justIndexes)
             dataWithoutPoint = np.delete(self.data, justIndexes, 0)
             mostFrequentClassLabel = utilities.getMajorClass(dataPoint, dataWithoutPoint, self.dist_metric, self.k)
             if dataPoint[-1] == mostFrequentClassLabel:
