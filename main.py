@@ -1,3 +1,5 @@
+from array import array
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -22,7 +24,7 @@ skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 
 configs = [
     # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
-    {"k_KNN": 1, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
+    {"k_KNN": 1, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
 ]
@@ -50,9 +52,8 @@ if __name__ == '__main__':
     matrix = matrixCorrelation.abs().to_numpy()
     ij_min = np.unravel_index(matrix.argmin(), matrix.shape)
     print(matrix[ij_min])
-
     print(ij_min)
-    utilities.displayTwoAttributes(ij_min[0], ij_min[1], dataAndClasses.values)
+    utilities.displayTwoAttributes(ij_min[0], ij_min[1], dataAndClasses, classes)
 
     if debug:
         # Create header for data only for display
@@ -71,7 +72,6 @@ if __name__ == '__main__':
         fig.show()
 
     for config in configs:
-
         print(config)
         if config.get('PCA_enabled'):
             dataPCA['Classes'] = dataAndClasses.values[:, -1].T

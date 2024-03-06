@@ -2,6 +2,7 @@ import sys
 from collections import Counter
 
 import numpy as np
+import plotly.express as px
 
 
 def euclidean(point, data):
@@ -9,14 +10,16 @@ def euclidean(point, data):
     return np.sqrt(np.sum((point - data) ** 2, axis=1))
 
 
-def displayTwoAttributes(firstColumn, secondColumn, data):
+def displayTwoAttributes(firstColumn, secondColumn, data, classes):
     """Display two attributes of data"""
-    print(data[:, firstColumn])
-    print(data[:, secondColumn])
-    # two_vars = [dataAndClasses.values[:, ij_min[0]], dataAndClasses.values[:, ij_min[1]]]
-    # fig = px.scatter(two_vars, x=ij_min[0], y=ij_min[1], symbol=classes, color=classes)
+    # print(data[:, firstColumn])
+    # print(data[:, secondColumn])
+    # two_vars = [data[:, firstColumn], data[:, secondColumn]]
+    # print(two_vars)
+    # print(np.shape(two_vars))
+    fig = px.scatter(x=data.values[:, firstColumn], y=data.values[:, secondColumn], color=classes)
     # fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=1, x=0, ticks="outside"))
-    # fig.show()
+    fig.show()
 
 
 def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):
