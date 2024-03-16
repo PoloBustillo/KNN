@@ -2,7 +2,6 @@ import sys
 
 import numpy as np
 from sklearn import metrics
-from collections import Counter
 import utilities
 import matplotlib.pyplot as plt
 
@@ -18,9 +17,11 @@ class KNNClassifier:
         self.actual = []
         self.predicted = []
         self.k = k
+        self.distances = None
         self.dist_metric = dist_metric
 
-    def fit(self, train, test):
+    def fit(self, train, test, distances=None):
+        self.distances = distances
         self.train = np.array(train)
         self.test = np.array(test)
 

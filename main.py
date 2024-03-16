@@ -20,6 +20,7 @@ debug = False
 display = False
 # KFold stratified
 kFolds = 10
+corrT = 0.3
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 
 configs = [
@@ -34,7 +35,6 @@ if __name__ == '__main__':
     dataAndClasses = pd.read_csv(path, sep=",", header=None)
     # Drop duplicate rows
     dataAndClasses = dataAndClasses.drop_duplicates()
-    # TODO: ask for this step
     # Drop attribute with same value for all elements / constants
     dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
     # Get classes
@@ -45,15 +45,17 @@ if __name__ == '__main__':
     principalComponents = pca.fit_transform(dataAndClasses.values[:, :-1])
     dataPCA = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
 
-    # Get correlation matrix (pearson) to get value closer to 0
+    # Get correlation matrix (pearson) to get value closer to threshold
     matrixCorrelation = dataAndClasses.corr().dropna(how='all', axis=1).dropna(how='all')
-    # matrixCorrelation = dataAndClasses.corr()
-    # print(matrixCorrelation.values[64, 384])
-    matrix = matrixCorrelation.abs().to_numpy()
-    ij_min = np.unravel_index(matrix.argmin(), matrix.shape)
-    print(matrix[ij_min])
-    print(ij_min)
-    utilities.displayTwoAttributes(ij_min[0], ij_min[1], dataAndClasses, classes)
+    gen = utilities.getIndicesFromCorrelation(matrixCorrelation.abs().to_numpy())
+
+    for i in gen:
+        print(i)
+
+    # ij_min = np.unravel_index(matrix.argmin(), matrix.shape)
+    # print(matrix[ij_min])
+    # print(ij_min)
+    # utilities.displayTwoAttributes(ij_min[0], ij_min[1], dataAndClasses, classes)
 
     if debug:
         # Create header for data only for display

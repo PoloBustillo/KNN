@@ -7,6 +7,7 @@ import plotly.express as px
 
 def euclidean(point, data):
     """Euclidean distance between a point & data"""
+    # TODO: CALCULATE DATA
     return np.sqrt(np.sum((point - data) ** 2, axis=1))
 
 
@@ -23,7 +24,7 @@ def displayTwoAttributes(firstColumn, secondColumn, data, classes):
 
 
 def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):
-    """Retrieve from data the the most k common distance measures"""
+    """Retrieve from data the most k common distance measures"""
     # Calculate the distance without the class label
     distances = dist_metric(dataPoint[:-1], data[:, :-1])
     # Add class label, sort and retrieve first k elements
@@ -40,6 +41,14 @@ def createHeaders(prefix='X', size=100):
     columnsArray = np.arange(0, size, 1, dtype=int)
     f = np.vectorize(lambda t: prefix + str(t))
     return f(columnsArray)
+
+
+def getIndicesFromCorrelation(matrix):
+    """Get the indices of the minimum values in a correlation matrix"""
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            if matrix[i, j] < .3:
+                yield i, j
 
 
 def read_file(path="./Dt1.txt"):
