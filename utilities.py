@@ -10,7 +10,6 @@ from sklearn.decomposition import PCA
 
 def euclidean(point, data):
     """Euclidean distance between a point & data"""
-    # TODO: CALCULATE DATA
     return np.sqrt(np.sum((point - data) ** 2, axis=1))
 
 
@@ -72,6 +71,7 @@ def apply_PCA(dataAndClasses: object) -> object:
         fig.show()
     return dataPCA
 
+
 def read_file(path="./Dt1.txt"):
     """Read file and retrieve data
     \n-Drop duplicate rows
@@ -84,7 +84,7 @@ def read_file(path="./Dt1.txt"):
     """
     try:
         dataAndClasses = pd.read_csv(path, sep=",", header=None)
-        dataAndClasses = dataAndClasses.drop_duplicates()
+        # dataAndClasses = dataAndClasses.drop_duplicates()
         dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
         # Create header for data only for display
         headers = createHeaders('Data_', len(dataAndClasses.values[0]) - 1)

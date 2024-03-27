@@ -19,7 +19,7 @@ corrT = 0.3
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
     # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
-    {"k_KNN": 5, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
+    {"k_KNN": 5, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
 ]
@@ -29,9 +29,17 @@ if __name__ == '__main__':
     dataAndClasses, classes, data = utilities.read_file(path)
     # Apply PCA only to visualize data if PCA flag is enabled then PCA components are used as data
     dataPCA = utilities.apply_PCA(dataAndClasses)
-
     # Get correlation matrix (pearson) to get value closer to threshold
     matrixCorrelation = dataAndClasses.corr().dropna(how='all', axis=1).dropna(how='all')
+
+    if debug:
+        utilities.printStart('DATA INFO:')
+        print(dataAndClasses)
+
+    if display:
+        plt.figure(figsize=(12, 8))
+        sns.heatmap(matrixCorrelation)
+
     gen = utilities.getIndicesFromCorrelation(matrixCorrelation.abs().to_numpy())
 
     # for i in gen:
@@ -42,17 +50,7 @@ if __name__ == '__main__':
     # print(ij_min)
     # utilities.displayTwoAttributes(ij_min[0], ij_min[1], dataAndClasses, classes)
 
-    if debug:
-        utilities.printStart('DATA INFO:')
-        # dataAndClasses.info()
-        print(dataAndClasses)
-    if display:
-        # HEATMAP correlation
-        plt.figure(figsize=(12, 8))
-        sns.heatmap(matrixCorrelation)
-
     for config in configs:
-
         # Configure initial setup for KNN and ENN
         knn = KNNClassifier(config.get('k_KNN'), config.get('distance_metric'))
         enn = ENNSmoothFilter(config.get('k_ENN'), config.get('distance_metric'))
@@ -61,21 +59,21 @@ if __name__ == '__main__':
         print(config)
         if config.get('PCA_enabled'):
             dataPCA['Classes'] = dataAndClasses.values[:, -1].T
-            data = dataPCA.values
+            data = dataPCA
             if debug:
                 print(dataPCA)
         else:
-            data = dataAndClasses.values
+            data = dataAndClasses
 
         # KFold execution
         i = 0
-        for train_indexes, test_indexes in skf.split(data, classes):
+        for train_indexes, test_indexes in skf.split(dataAndClasses, classes):
             if debug:
                 i = i + 1
                 print('### KFold: ', i, " ####")
             # From indexes create train data and test data
-            trainData = [data[index, :] for index in train_indexes]
-            testData = [data[index, :] for index in test_indexes]
+            trainData = [data.iloc[index, :] for index in train_indexes]
+            testData = [data.iloc[index, :] for index in test_indexes]
 
             # ENN use train data only to clean up outliers and smooth frontiers
             if config.get('ENN_enabled'):

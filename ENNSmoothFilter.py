@@ -25,7 +25,7 @@ class ENNSmoothFilter:
 
     def evaluate(self):
         self.resultSet = []
-        # self.removed = []
+        self.removed = []
         for idx, dataPoint in enumerate(self.data):
             # Removed point from data
             dataWithoutPoint = np.delete(self.data, idx, 0)
