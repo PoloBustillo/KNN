@@ -1,8 +1,6 @@
 import numpy as np
-from sklearn import metrics
-from collections import Counter
 import utilities
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 
 class ENNSmoothFilter:
@@ -24,12 +22,10 @@ class ENNSmoothFilter:
             print("Old data length: ", len(self.data))
             print("Removed points: ", len(self.removed))
             print(" ----------------ENN----------------")
-        if display:
-            print("----------------")
 
     def evaluate(self):
         self.resultSet = []
-        self.removed = []
+        # self.removed = []
         for idx, dataPoint in enumerate(self.data):
             # Removed point from data
             dataWithoutPoint = np.delete(self.data, idx, 0)
@@ -37,4 +33,4 @@ class ENNSmoothFilter:
             if dataPoint[-1] == mostFrequentClassLabel:
                 self.resultSet.append(dataPoint)
             else:
-                self.removed.append({"point": dataPoint, "index": idx})
+                self.removed.append(idx)

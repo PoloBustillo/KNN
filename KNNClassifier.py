@@ -25,13 +25,12 @@ class KNNClassifier:
         self.train = np.array(train)
         self.test = np.array(test)
 
-    def metrics(self, debug=True, display=True):
+    def metrics(self, debug=True, display=True, headers=[]):
         print("Correctly Classified Instances:", self.correct, " / ", str("%.5f" % (self.accuracy * 100)) + "%")
         print("Incorrectly Classified Instances :", self.incorrect, " / ",
               str("%.5f" % ((1 - self.accuracy) * 100)) + "%")
         confusion_matrix = metrics.confusion_matrix(self.actual, self.predicted)
-        cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix,
-                                                    display_labels=[0, 1, 2, 3, 4, 5])
+        cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix)
         cm_display.plot()
         plt.show()
 

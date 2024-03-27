@@ -2,7 +2,10 @@ import sys
 from collections import Counter
 
 import numpy as np
+import pandas as pd
 import plotly.express as px
+from art import text2art
+from sklearn.decomposition import PCA
 
 
 def euclidean(point, data):
@@ -36,6 +39,12 @@ def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):
     return classCounts.most_common(1)[0][0]
 
 
+def printStart(title):
+    """Print the data"""
+    Art = text2art(title)
+    print(Art)
+
+
 def createHeaders(prefix='X', size=100):
     """Create the data headers to be displayed"""
     columnsArray = np.arange(0, size, 1, dtype=int)
@@ -51,16 +60,42 @@ def getIndicesFromCorrelation(matrix):
                 yield i, j
 
 
+def apply_PCA(dataAndClasses: object) -> object:
+    dataPCA = dataAndClasses
+    classes = dataAndClasses.iloc[:, -1]
+    if dataAndClasses.shape[1] > 3:
+        pca = PCA(n_components=2)
+        principalComponents = pca.fit_transform(dataAndClasses.values[:, :-1])
+        dataPCA = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
+        fig = px.scatter(dataPCA, x="PC1", y="PC2", symbol=classes.to_numpy().T, color=classes.to_numpy().T)
+        fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=1, x=0, ticks="outside"))
+        fig.show()
+    return dataPCA
+
 def read_file(path="./Dt1.txt"):
-    """Read file and retrieve data"""
-    data = list()
+    """Read file and retrieve data
+    \n-Drop duplicate rows
+    \n-Drop attribute with same value for all elements / constants
+
+    :param path: path to file
+    :type path: str
+    :returns: dataAndClasses:data with classes , classes: classes for all elements, data: data without classes
+    :rtype dataAndClasses: pd.DataFrame
+    """
     try:
-        with open(path, 'r') as f:
-            lines = f.readlines()
-            for line in lines:
-                xi = line.rstrip().split(",")
-                data.append(xi)
-        return data
-    except FileNotFoundError as e:
+        dataAndClasses = pd.read_csv(path, sep=",", header=None)
+        dataAndClasses = dataAndClasses.drop_duplicates()
+        dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
+        # Create header for data only for display
+        headers = createHeaders('Data_', len(dataAndClasses.values[0]) - 1)
+        headers = np.append(headers, 'Classes')
+
+        dataAndClasses.columns = headers
+        classes = dataAndClasses.iloc[:, -1]
+        data = dataAndClasses.iloc[:, :-1]
+
+        return dataAndClasses, classes, data
+
+    except Exception as error:
         print(f"File {path} does not exist!", file=sys.stderr)
         return
