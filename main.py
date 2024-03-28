@@ -19,7 +19,7 @@ corrT = 0.3
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
     # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
-    {"k_KNN": 5, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
+    {"k_KNN": 5, "k_ENN": 11, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
 ]
@@ -31,6 +31,13 @@ if __name__ == '__main__':
     dataPCA = utilities.apply_PCA(dataAndClasses)
     # Get correlation matrix (pearson) to get value closer to threshold
     matrixCorrelation = dataAndClasses.corr().dropna(how='all', axis=1).dropna(how='all')
+
+    if data.shape[1] == 2:
+        fig = px.scatter(dataAndClasses, x="Data_0", y="Data_1", symbol=classes, color=classes)
+        fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=1, x=0, ticks="outside"))
+        fig.show()
+    else:
+        print("select data")
 
     if debug:
         utilities.printStart('DATA INFO:')
@@ -65,32 +72,35 @@ if __name__ == '__main__':
         else:
             data = dataAndClasses
 
+        if config.get('ENN_enabled'):
+            enn.fit(data)
+            enn.evaluate()
+            enn.metrics(debug, display)
+
+            removeArray = list(set(enn.removed))
+            data = dataAndClasses.drop(index=removeArray)
+            classes = data.iloc[:, -1]
+
+            ennDataFrame = pd.DataFrame(dataAndClasses.iloc[removeArray, :])
+            ennDataFrame['Classes'] = 'Removed'
+            ennPlusData = pd.concat([ennDataFrame, data])
+
+            classesWithEnn = ennPlusData.iloc[:, -1]
+            classesOld = dataAndClasses.iloc[removeArray, -1]
+            classesOld = pd.concat([classesOld, classes])
+
+            fig1 = px.scatter(ennPlusData, x="Data_0", y="Data_1", symbol=classesOld, color=classesWithEnn)
+            fig1.show()
+
         # KFold execution
         i = 0
-        for train_indexes, test_indexes in skf.split(dataAndClasses, classes):
+        for train_indexes, test_indexes in skf.split(data, classes):
             if debug:
                 i = i + 1
                 print('### KFold: ', i, " ####")
             # From indexes create train data and test data
             trainData = [data.iloc[index, :] for index in train_indexes]
             testData = [data.iloc[index, :] for index in test_indexes]
-
-            # ENN use train data only to clean up outliers and smooth frontiers
-            if config.get('ENN_enabled'):
-                enn.fit(trainData)
-                enn.evaluate()
-                enn.metrics(debug, display)
-                trainData = enn.resultSet
             knn.fit(trainData, testData)
             knn.evaluate()
-
-        # removeArray = list(set(enn.removed))
-        # print(removeArray)
-        # print(dataAndClasses.iloc[[20]])
-        # dataAndClasses = dataAndClasses.drop(index=removeArray)
-        # classes = dataAndClasses.values[:, -1].T
-        # fig = px.scatter(dataAndClasses, x="Data_0", y="Data_1", symbol=classes, color=classes)
-        # fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=1, x=0, ticks="outside"))
-        # fig.show()
-        # print(dataAndClasses.shape)
         knn.metrics(debug, display)
