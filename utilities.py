@@ -85,7 +85,7 @@ def read_file(path="./Dt1.txt"):
     try:
         dataAndClasses = pd.read_csv(path, sep=",", header=None)
         # dataAndClasses = dataAndClasses.drop_duplicates()
-        dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
+        # dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
         # Create header for data only for display
         headers = createHeaders('Data_', len(dataAndClasses.values[0]) - 1)
         headers = np.append(headers, 'Classes')

@@ -11,7 +11,7 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.figure_factory as ff
 
-path = "./sintetico.txt"
+path = "./Dt1.txt"
 debug = True
 display = True
 kFolds = 10
@@ -19,7 +19,7 @@ corrT = 0.3
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
     # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
-    {"k_KNN": 5, "k_ENN": 11, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
+    {"k_KNN": 5, "k_ENN": 7, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
 ]
@@ -49,8 +49,8 @@ if __name__ == '__main__':
 
     gen = utilities.getIndicesFromCorrelation(matrixCorrelation.abs().to_numpy())
 
-    # for i in gen:
-    #     print(i)
+    for i in gen:
+        print(i)
 
     # ij_min = np.unravel_index(matrix.argmin(), matrix.shape)
     # print(matrix[ij_min])
@@ -88,7 +88,7 @@ if __name__ == '__main__':
             classesWithEnn = ennPlusData.iloc[:, -1]
             classesOld = dataAndClasses.iloc[removeArray, -1]
             classesOld = pd.concat([classesOld, classes])
-
+            print(ennPlusData)
             fig1 = px.scatter(ennPlusData, x="Data_0", y="Data_1", symbol=classesOld, color=classesWithEnn)
             fig1.show()
 
