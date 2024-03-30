@@ -44,25 +44,27 @@ def printStart(title):
     print(Art)
 
 
-def createHeaders(prefix='X', size=100):
+def createHeaders(size=100):
     """Create the data headers to be displayed"""
     columnsArray = np.arange(0, size, 1, dtype=int)
-    f = np.vectorize(lambda t: prefix + str(t))
+    f = np.vectorize(lambda t: str(t))
     return f(columnsArray)
 
 
-def getIndicesFromCorrelation(matrix):
+def getIndicesFromCorrelation(matrix, corrT):
     """Get the indices of the minimum values in a correlation matrix"""
-    for i in range(len(matrix)):
-        for j in range(len(matrix)):
-            if matrix[i, j] < .3:
-                yield i, j
+    valuesInT = []
+    tri = np.tril_indices_from(matrix)
+    for i in range(len(tri[0])):
+        if matrix[tri[0][i], tri[1][i]] < corrT:
+            valuesInT.append({"i": tri[0][i], "j": tri[1][i]})
+    return valuesInT
 
 
-def apply_PCA(dataAndClasses: object) -> object:
+def apply_PCA(dataAndClasses, display=True):
     dataPCA = dataAndClasses
     classes = dataAndClasses.iloc[:, -1]
-    if dataAndClasses.shape[1] > 3:
+    if dataAndClasses.shape[1] > 3 and display:
         pca = PCA(n_components=2)
         principalComponents = pca.fit_transform(dataAndClasses.values[:, :-1])
         dataPCA = pd.DataFrame(data=principalComponents, columns=['PC1', 'PC2'])
@@ -85,12 +87,11 @@ def read_file(path="./Dt1.txt"):
     try:
         dataAndClasses = pd.read_csv(path, sep=",", header=None)
         # dataAndClasses = dataAndClasses.drop_duplicates()
-        # dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
         # Create header for data only for display
-        headers = createHeaders('Data_', len(dataAndClasses.values[0]) - 1)
+        headers = createHeaders(len(dataAndClasses.values[0]) - 1)
         headers = np.append(headers, 'Classes')
-
         dataAndClasses.columns = headers
+        # dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
         classes = dataAndClasses.iloc[:, -1]
         data = dataAndClasses.iloc[:, :-1]
 

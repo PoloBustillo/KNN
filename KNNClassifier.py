@@ -29,10 +29,11 @@ class KNNClassifier:
         print("Correctly Classified Instances:", self.correct, " / ", str("%.5f" % (self.accuracy * 100)) + "%")
         print("Incorrectly Classified Instances :", self.incorrect, " / ",
               str("%.5f" % ((1 - self.accuracy) * 100)) + "%")
-        confusion_matrix = metrics.confusion_matrix(self.actual, self.predicted)
-        cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix)
-        cm_display.plot()
-        plt.show()
+        if display:
+            confusion_matrix = metrics.confusion_matrix(self.actual, self.predicted)
+            cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix)
+            cm_display.plot()
+            plt.show()
 
     def evaluate(self, keepData=True):
         if not keepData:
