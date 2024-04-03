@@ -13,16 +13,22 @@ def euclidean(point, data):
     return np.sqrt(np.sum((point - data) ** 2, axis=1))
 
 
-def displayTwoAttributes(firstColumn, secondColumn, data, classes):
+def calculateTwoSignificantAttributes(data, matrixCorrelation, corrT):
     """Display two attributes of data"""
-    # print(data[:, firstColumn])
-    # print(data[:, secondColumn])
-    # two_vars = [data[:, firstColumn], data[:, secondColumn]]
-    # print(two_vars)
-    # print(np.shape(two_vars))
-    fig = px.scatter(x=data.values[:, firstColumn], y=data.values[:, secondColumn], color=classes)
-    # fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=1, x=0, ticks="outside"))
-    fig.show()
+    xAttr = "0"
+    yAttr = "1"
+    if data.shape[1] != 2:
+        values = getIndicesFromCorrelation(matrixCorrelation.abs().to_numpy(), corrT)
+        dataFrequencies = []
+        for value in values:
+            dataFrequencies.append(
+                len(set(data.iloc[:, value["i"]])) + len(
+                    set(data.iloc[:, value["j"]])))
+        xAttr = values[dataFrequencies.index(np.max(dataFrequencies))]["j"]
+        yAttr = values[dataFrequencies.index(np.max(dataFrequencies))]["i"]
+    return xAttr, yAttr
+
+
 
 
 def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):

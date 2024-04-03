@@ -15,15 +15,16 @@ class KNNClassifier:
         self.incorrect = 0
         self.accuracy = 0
         self.actual = []
+        self.plot = []
+        self.test_indexes = []
         self.predicted = []
         self.k = k
-        self.distances = None
         self.dist_metric = dist_metric
 
-    def fit(self, train, test, distances=None):
-        self.distances = distances
+    def fit(self, train, test, test_indexes):
         self.train = np.array(train)
         self.test = np.array(test)
+        self.test_indexes = test_indexes
 
     def metrics(self, debug=True, display=True, headers=[]):
         print("Correctly Classified Instances:", self.correct, " / ", str("%.5f" % (self.accuracy * 100)) + "%")
@@ -44,6 +45,7 @@ class KNNClassifier:
         for idx, testPoint in enumerate(self.test):
             mostFrequentClassLabel = utilities.getMajorClass(testPoint, self.train, self.dist_metric, self.k)
             # Compare the class label with the most frequent class label
+            self.plot.append([self.test_indexes[idx], mostFrequentClassLabel == testPoint[-1]])
             if testPoint[-1] == mostFrequentClassLabel:
                 self.correct = self.correct + 1
                 self.actual.append(testPoint[-1])
@@ -52,4 +54,5 @@ class KNNClassifier:
                 self.incorrect = self.incorrect + 1
                 self.actual.append(testPoint[-1])
                 self.predicted.append(mostFrequentClassLabel)
+
             self.accuracy = self.correct / (self.correct + self.incorrect)
