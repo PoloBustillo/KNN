@@ -5,18 +5,17 @@ from ENNSmoothFilter import ENNSmoothFilter
 from KNNClassifier import KNNClassifier
 import utilities
 import plotly.express as px
-import numpy as np
 
-path = "./Dt1.txt"
+path = "./sintetico.txt"
 debug = True
 display = True
 kFolds = 10
 corrT = 0.3
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
-    {"k_KNN": 5, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
+     {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
+    {"k_KNN": 7, "k_ENN": 15, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
+     {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
 ]
 
@@ -49,7 +48,7 @@ if __name__ == '__main__':
         print(config)
 
         if config.get('ENN_enabled'):
-            enn.fit(data)
+            enn.fit(dataAndClasses)
             enn.evaluate()
             # Recalculate new data and classes
             data = pd.DataFrame(enn.resultSet)
@@ -90,10 +89,11 @@ if __name__ == '__main__':
 
         # TODO: fix indices failures
         knn.metrics(debug, display)
-        print(np.array(knn.plot)[:, 0])
-        df = pd.DataFrame(data, index=np.array(knn.plot)[:, 0])
-        fig1 = px.scatter(df, x=str(xAttr), y=str(yAttr), color=np.array(knn.plot)[:, 1], symbol=df.iloc[:, -1],
-                          color_continuous_scale=["orange", "red", "green", "blue", "purple"])
+
+        fig1 = px.scatter(knn.knn_evaluation, x=xAttr, y=yAttr,
+                          color=knn.knn_evaluation['Status'],
+                          symbol=knn.knn_evaluation['Evaluation'],
+                          color_continuous_scale=["orange", "green", "blue", "purple"])
         fig1.update_layout(
             title="KNN Classifier",
             title_font=dict(size=20,
