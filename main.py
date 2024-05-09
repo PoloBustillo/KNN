@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from ENNSmoothFilter import ENNSmoothFilter
@@ -13,10 +12,10 @@ kFolds = 10
 corrT = 0.3
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
-     {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
-    {"k_KNN": 7, "k_ENN": 15, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
-     {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 7, "k_ENN": 15, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
+    {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
 ]
 
 if __name__ == '__main__':
@@ -73,7 +72,6 @@ if __name__ == '__main__':
                                         ticks="outside")
             )
             fig.show()
-            plt.figure(figsize=(12, 8))
 
         # KFold execution
         i = 0
@@ -81,27 +79,7 @@ if __name__ == '__main__':
             if debug:
                 i = i + 1
                 print('### KFold: ', i, " ####")
-            # From indexes create train data and test data
-            trainData = [data.iloc[index, :] for index in train_indexes]
-            testData = [data.iloc[index, :] for index in test_indexes]
-            knn.fit(trainData, testData, test_indexes)
+            knn.fit(data, train_indexes, test_indexes)
             knn.evaluate()
 
-        # TODO: fix indices failures
-        knn.metrics(debug, display)
-
-        fig1 = px.scatter(knn.knn_evaluation, x=xAttr, y=yAttr,
-                          color=knn.knn_evaluation['Status'],
-                          symbol=knn.knn_evaluation['Evaluation'],
-                          color_continuous_scale=["orange", "green", "blue", "purple"])
-        fig1.update_layout(
-            title="KNN Classifier",
-            title_font=dict(size=20,
-                            color='green',
-                            family='Arial'),
-            coloraxis_colorbar=dict(yanchor="top",
-                                    y=1, x=0,
-                                    ticks="outside"),
-
-        )
-        fig1.show()
+        knn.metrics(debug, display, xAttr, yAttr)

@@ -29,8 +29,6 @@ def calculateTwoSignificantAttributes(data, matrixCorrelation, corrT):
     return xAttr, yAttr
 
 
-
-
 def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):
     """Retrieve from data the most k common distance measures"""
     # Calculate the distance without the class label
