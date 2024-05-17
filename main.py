@@ -1,10 +1,11 @@
-import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from ENNSmoothFilter import ENNSmoothFilter
 from KNNClassifier import KNNClassifier
+import pandas as pd
 import utilities
-import plotly.express as px
 
+# path = "./Dt1.txt"
+# path = "./iris.data.txt"
 path = "./sintetico.txt"
 debug = True
 display = True
@@ -12,66 +13,55 @@ kFolds = 10
 corrT = 0.3
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 7, "k_ENN": 15, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean},
-    {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True, "distance_metric": utilities.euclidean}
+    {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True,
+     "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean}
 ]
 
 if __name__ == '__main__':
-
+    # By default, selected attributes to plot are 0 and 1
+    xAttr = 0
+    yAttr = 1
     # Get data from file
-    # TODO: indices when remove constant attribute
     dataAndClasses, classes, dataWithoutClasses = utilities.read_file(path)
     data = dataAndClasses
-    matrixCorrelation = dataWithoutClasses.corr()
-    # By default, selected attributes to display are 0 and 1
-    xAttr = "0"
-    yAttr = "1"
-
     # Just display data to get an idea of it
     if debug:
         utilities.printStart('DATA INFO:')
         print(dataAndClasses)
-
-    # Display heatmap for pearson correlation
-    # if display:
-    #     sns.heatmap(matrixCorrelation)
+    if data.shape[1] != 2:
+        matrixCorrelation = dataWithoutClasses.corr()
 
     for config in configs:
+        print(config)
         # Configure initial setup for KNN and ENN
         knn = KNNClassifier(config.get('k_KNN'), config.get('distance_metric'))
         enn = ENNSmoothFilter(config.get('k_ENN'), config.get('distance_metric'))
         # Print current configuration
-        utilities.printStart('KNN:' + str(config.get('k_KNN')))
-        print(config)
+        if config.get("ENN_enabled"):
+            utilities.printStart('KNN:' + str(config.get('k_KNN')) + ' - ENN:' + str(config.get('k_ENN')))
+        else:
+            utilities.printStart('KNN:' + str(config.get('k_KNN')))
 
+        if config.get('FindData_enabled'):
+            # Calculate two attributes for plotting using data
+            xAttr, yAttr = utilities.calculateTwoSignificantAttributes(data, matrixCorrelation, corrT)
+            # Display data without classification
+            utilities.plotData(display, data, xAttr, yAttr, classes)
         if config.get('ENN_enabled'):
+            # Recalculate new data and classes
             enn.fit(dataAndClasses)
             enn.evaluate()
-            # Recalculate new data and classes
             data = pd.DataFrame(enn.resultSet)
             classes = data.iloc[:, -1]
-            # Calculate two attributes for plotting using enn_data
-            xAttr, yAttr = utilities.calculateTwoSignificantAttributes(data, matrixCorrelation, corrT)
-            enn.metrics(xAttr, yAttr, debug, display)
-        else:
-            # Calculate two attributes for plotting using whole data
-            xAttr, yAttr = utilities.calculateTwoSignificantAttributes(data, matrixCorrelation, corrT)
-
-        # Display data without classification
-        if display:
-            fig = px.scatter(data, x=str(xAttr), y=str(yAttr), symbol=classes, color=classes)
-            fig.update_layout(
-                title="Data without classification",
-                title_font=dict(size=20,
-                                color='green',
-                                family='Arial'),
-                coloraxis_colorbar=dict(yanchor="top",
-                                        y=1, x=0,
-                                        ticks="outside")
-            )
-            fig.show()
 
         # KFold execution
         i = 0
@@ -81,5 +71,6 @@ if __name__ == '__main__':
                 print('### KFold: ', i, " ####")
             knn.fit(data, train_indexes, test_indexes)
             knn.evaluate()
-
+        if config.get('ENN_enabled'):
+            enn.metrics(xAttr, yAttr, debug, display)
         knn.metrics(debug, display, xAttr, yAttr)

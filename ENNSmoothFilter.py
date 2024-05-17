@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+import time
 import utilities
 import plotly.express as px
 
@@ -10,7 +10,7 @@ class ENNSmoothFilter:
     def __init__(self, k=5, dist_metric=utilities.euclidean):
         self.data = pd.DataFrame()
         self.removed = []
-        self.resultSet = []
+        self.resultSet = pd.DataFrame()
         self.k = k
         self.dist_metric = dist_metric
 
@@ -44,10 +44,12 @@ class ENNSmoothFilter:
     def evaluate(self):
         self.resultSet = []
         values = np.array(self.data)
+        start_time = time.time()
         for idx, dataPoint in enumerate(values):
             # Removed point from data
             dataWithoutPoint = np.delete(values, idx, 0)
             mostFrequentClassLabel = utilities.getMajorClass(dataPoint, dataWithoutPoint, self.dist_metric, self.k)
             if dataPoint[-1] != mostFrequentClassLabel:
                 self.removed.append(idx)
+        print("--- %s seconds ---" % (time.time() - start_time))
         self.resultSet = self.data.drop(index=self.removed)

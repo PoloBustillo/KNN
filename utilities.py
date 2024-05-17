@@ -10,7 +10,22 @@ from sklearn.decomposition import PCA
 
 def euclidean(point, data):
     """Euclidean distance between a point & data"""
-    return np.sqrt(np.sum((point - data) ** 2, axis=1))
+    return np.sqrt(np.sum((np.float64(point) - np.float64(data)) ** 2, axis=1))
+
+
+def plotData(display, data, xAttr, yAttr, classes):
+    if display:
+        fig = px.scatter(data, x=str(xAttr), y=str(yAttr), symbol=classes, color=classes)
+        fig.update_layout(
+            title="Data without classification",
+            title_font=dict(size=20,
+                            color='green',
+                            family='Arial'),
+            coloraxis_colorbar=dict(yanchor="top",
+                                    y=1, x=0,
+                                    ticks="outside")
+        )
+        fig.show()
 
 
 def calculateTwoSignificantAttributes(data, matrixCorrelation, corrT):
@@ -80,9 +95,6 @@ def apply_PCA(dataAndClasses, display=True):
 
 def read_file(path="./Dt1.txt"):
     """Read file and retrieve data
-    \n-Drop duplicate rows
-    \n-Drop attribute with same value for all elements / constants
-
     :param path: path to file
     :type path: str
     :returns: dataAndClasses:data with classes , classes: classes for all elements, data: data without classes
@@ -90,17 +102,13 @@ def read_file(path="./Dt1.txt"):
     """
     try:
         dataAndClasses = pd.read_csv(path, sep=",", header=None)
-        # dataAndClasses = dataAndClasses.drop_duplicates()
         # Create header for data only for display
         headers = createHeaders(len(dataAndClasses.values[0]) - 1)
         headers = np.append(headers, 'Classes')
         dataAndClasses.columns = headers
-        # dataAndClasses = dataAndClasses[[i for i in dataAndClasses if len(set(dataAndClasses[i])) > 1]]
         classes = dataAndClasses.iloc[:, -1]
         data = dataAndClasses.iloc[:, :-1]
-
         return dataAndClasses, classes, data
-
     except Exception as error:
         print(f"File {path} does not exist!", file=sys.stderr)
         return

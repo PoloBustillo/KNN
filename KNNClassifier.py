@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pandas as pd
 from sklearn import metrics
@@ -36,12 +38,25 @@ class KNNClassifier:
         self.test_indexes = test_indexes
 
     def metrics(self, debug=True, display=True, xAxis=0, yAxis=1):
-        accuracy = str("%.5f" % (self.accuracy * 100)) + "%"
-        failures = str("%.5f" % ((1 - self.accuracy) * 100)) + "%"
-        print("Correctly Classified Instances:", len(self.correct), " / ", accuracy)
-        print("Incorrectly Classified Instances :", len(self.incorrect), " / ", failures)
+
+        confusion_matrix = metrics.confusion_matrix(np.array(self.allPoints)[:, -1],
+                                                    np.array(self.predicted)[:, -1])
+        FP = (confusion_matrix.sum(axis=0) - np.diag(confusion_matrix)).sum()
+        TP = np.diag(confusion_matrix).sum()
+        accuracy = metrics.accuracy_score(np.array(self.allPoints)[:, -1],
+                                          np.array(self.predicted)[:, -1])
+        print("Correctly Classified Instances:", TP, " / ", accuracy)
+        print("Incorrectly Classified Instances :", FP, " / ", (1 - accuracy))
 
         if display:
+            report = metrics.classification_report(np.array(self.allPoints)[:, -1],
+                                                   np.array(self.predicted)[:, -1], digits=6)
+            print(report)
+            # precision, recall, _ = metrics.precision_recall_curve(np.array(self.allPoints)[:, -1],
+            #                                                       np.array(self.predicted)[:, -1])
+            # disp = metrics.PrecisionRecallDisplay(precision=precision, recall=recall)
+            # disp.plot()
+
             confusion_matrix = metrics.confusion_matrix(np.array(self.allPoints)[:, -1],
                                                         np.array(self.predicted)[:, -1])
             cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix)
@@ -52,7 +67,7 @@ class KNNClassifier:
                               symbol=self.knn_evaluation['Evaluation'],
                               color_continuous_scale=["orange", "green", "blue", "purple"])
             fig1.update_layout(
-                title="KNN " + str(self.k) + " / " + accuracy + " - " + failures,
+                title="KNN " + str(self.k) + " / " + str(accuracy) + " - " + str(1 - accuracy),
                 title_font=dict(size=20,
                                 color='green',
                                 family='Arial'),
@@ -69,6 +84,7 @@ class KNNClassifier:
             self.predicted = []
             self.correct = []
             self.incorrect = []
+        start_time = time.time()
         for idx, testPoint in enumerate(self.test):
             mostFrequentClassLabel = utilities.getMajorClass(testPoint, self.train, self.dist_metric, self.k)
             # Compare the class label with the most frequent class label
@@ -78,12 +94,11 @@ class KNNClassifier:
                 self.allPoints.append(testPoint)
                 self.predicted.append(testPoint)
             else:
-                print(type(testPoint))
                 self.allPoints.append(testPoint.copy())
                 testPoint[-1] = mostFrequentClassLabel
                 self.predicted.append(testPoint)
                 self.incorrect.append(testPoint)
-
+        print("--- %s seconds ---" % (time.time() - start_time))
         self.knn_evaluation = pd.DataFrame(self.incorrect)
         self.accuracy = len(self.correct) / (len(self.correct) + len(self.incorrect))
         if len(self.incorrect) > 0:
