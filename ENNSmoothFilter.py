@@ -43,7 +43,7 @@ class ENNSmoothFilter:
 
             )
             fig1.show()
-        return len(self.resultSet), len(self.resultSet), len(self.removed)
+        return len(self.resultSet), len(self.data), len(self.removed)
 
     def evaluate(self):
         self.resultSet = []

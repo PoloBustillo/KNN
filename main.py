@@ -14,7 +14,7 @@ from plotly.validators.scatter.marker import SymbolValidator
 path = "./Dt1.txt"
 # path = "./iris.data.txt"
 # path = "./sintetico.txt"
-debug = False
+debug = True
 display = False
 kFolds = 10
 corrT = 0.3
@@ -58,6 +58,7 @@ if __name__ == '__main__':
         matrixCorrelation = dataWithoutClasses.corr()
 
     ennPlot = []
+    ennData = []
     if findDataFlag:
         # Calculate two attributes for plotting using data
         xAttr, yAttr = utilities.calculateTwoSignificantAttributes(data, matrixCorrelation, corrT)
@@ -78,8 +79,7 @@ if __name__ == '__main__':
             # Recalculate new data and classes
             enn.fit(dataAndClasses)
             enn.evaluate()
-            allData = pd.concat([enn.removed, enn.resultSet])
-            ennPlot.append(allData)
+            ennPlot.append(pd.concat([enn.removed, enn.resultSet]))
             data = pd.DataFrame(enn.resultSet)
             classes = data.iloc[:, -1]
 
@@ -92,12 +92,16 @@ if __name__ == '__main__':
             knn.fit(data, train_indexes, test_indexes)
             knn.evaluate()
         if config.get('ENN_enabled'):
-            enn.metrics(xAttr, yAttr, debug, display)
+            ennData.append(enn.metrics(xAttr, yAttr, debug, display))
         knn.metrics(debug, display, xAttr, yAttr)
 
     fig = make_subplots(rows=math.ceil(len(configs) / 2), cols=2,
-                        subplot_titles=["KNN: " + str(x.get('k_KNN')) + " ENN: " + str(x.get('k_ENN')) for x in
-                                        configs])
+                        subplot_titles=[
+                            "KNN:" + str(configs[idx].get('k_KNN')) + " - ENN:" + str(configs[idx].get('k_ENN')) +
+                            " - Removed:" + str(ennData[idx][2]) +
+                            " - Old Data:" + str(ennData[idx][1])
+                            for idx in range(len(configs))
+                        ])
     symbols = random.choices(SymbolValidator().values, k=20)
     for idx in range(len(ennPlot)):
         by_class = ennPlot[idx].groupby('Classes')
