@@ -47,11 +47,11 @@ class KNNClassifier:
                                           np.array(self.predicted)[:, -1])
         print("Correctly Classified Instances:", TP, " / ", accuracy)
         print("Incorrectly Classified Instances :", FP, " / ", (1 - accuracy))
-
+        report = metrics.classification_report(np.array(self.allPoints)[:, -1],
+                                               np.array(self.predicted)[:, -1], digits=6)
+        print(report)
         if display:
-            report = metrics.classification_report(np.array(self.allPoints)[:, -1],
-                                                   np.array(self.predicted)[:, -1], digits=6)
-            print(report)
+
             # precision, recall, _ = metrics.precision_recall_curve(np.array(self.allPoints)[:, -1],
             #                                                       np.array(self.predicted)[:, -1])
             # disp = metrics.PrecisionRecallDisplay(precision=precision, recall=recall)

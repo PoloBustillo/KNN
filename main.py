@@ -1,29 +1,46 @@
+import math
+
+import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from ENNSmoothFilter import ENNSmoothFilter
 from KNNClassifier import KNNClassifier
+import random
 import pandas as pd
 import utilities
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+from plotly.validators.scatter.marker import SymbolValidator
 
-# path = "./Dt1.txt"
+path = "./Dt1.txt"
 # path = "./iris.data.txt"
-path = "./sintetico.txt"
-debug = True
-display = True
+# path = "./sintetico.txt"
+debug = False
+display = False
 kFolds = 10
 corrT = 0.3
+findDataFlag = True,
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
-    {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True,
+    {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True,
      "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True, "FindData_enabled": True, "distance_metric": utilities.euclidean}
+    {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True,
+     "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 7, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    #  "distance_metric": utilities.euclidean}
 ]
 
 if __name__ == '__main__':
@@ -40,6 +57,13 @@ if __name__ == '__main__':
     if data.shape[1] != 2:
         matrixCorrelation = dataWithoutClasses.corr()
 
+    ennPlot = []
+    if findDataFlag:
+        # Calculate two attributes for plotting using data
+        xAttr, yAttr = utilities.calculateTwoSignificantAttributes(data, matrixCorrelation, corrT)
+        # Display data without classification
+        utilities.plotData(display, data, xAttr, yAttr, classes)
+
     for config in configs:
         print(config)
         # Configure initial setup for KNN and ENN
@@ -50,16 +74,12 @@ if __name__ == '__main__':
             utilities.printStart('KNN:' + str(config.get('k_KNN')) + ' - ENN:' + str(config.get('k_ENN')))
         else:
             utilities.printStart('KNN:' + str(config.get('k_KNN')))
-
-        if config.get('FindData_enabled'):
-            # Calculate two attributes for plotting using data
-            xAttr, yAttr = utilities.calculateTwoSignificantAttributes(data, matrixCorrelation, corrT)
-            # Display data without classification
-            utilities.plotData(display, data, xAttr, yAttr, classes)
         if config.get('ENN_enabled'):
             # Recalculate new data and classes
             enn.fit(dataAndClasses)
             enn.evaluate()
+            allData = pd.concat([enn.removed, enn.resultSet])
+            ennPlot.append(allData)
             data = pd.DataFrame(enn.resultSet)
             classes = data.iloc[:, -1]
 
@@ -74,3 +94,32 @@ if __name__ == '__main__':
         if config.get('ENN_enabled'):
             enn.metrics(xAttr, yAttr, debug, display)
         knn.metrics(debug, display, xAttr, yAttr)
+
+    fig = make_subplots(rows=math.ceil(len(configs) / 2), cols=2,
+                        subplot_titles=["KNN: " + str(x.get('k_KNN')) + " ENN: " + str(x.get('k_ENN')) for x in
+                                        configs])
+    symbols = random.choices(SymbolValidator().values, k=20)
+    for idx in range(len(ennPlot)):
+        by_class = ennPlot[idx].groupby('Classes')
+        indexCol = (idx % 2) + 1
+        indexRow = (idx // 2) + 1
+        index = 0
+        for groups, data in by_class:
+            fig.add_trace(
+                go.Scatter(
+                    name=groups,
+                    x=data.iloc[:, 0],
+                    y=data.iloc[:, 1],
+                    marker=dict(
+                        symbol=symbols[index]
+                    ),
+                    marker_line_width=1,
+                    marker_size=5,
+                    mode="markers",
+                ),
+                row=indexRow, col=indexCol
+            )
+            index += 1
+
+    fig.update_layout(title_text="Archivo: " + path)
+    fig.show()
