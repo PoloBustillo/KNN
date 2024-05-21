@@ -12,28 +12,28 @@ import plotly.graph_objects as go
 from plotly.validators.scatter.marker import SymbolValidator
 
 path = "./Dt1.txt"
-# path = "./iris.data.txt"
+#path = "./iris.data.txt"
 # path = "./sintetico.txt"
 debug = True
-display = False
+display = True
 kFolds = 10
 corrT = 0.3
 findDataFlag = True,
 skf = StratifiedKFold(n_splits=kFolds, shuffle=True, random_state=1)
 configs = [
-    {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": True,
+    {"k_KNN": 3, "k_ENN": 3, "PCA_enabled": False, "ENN_enabled": False,
      "distance_metric": utilities.euclidean},
-    {"k_KNN": 3, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True,
+    {"k_KNN": 5, "k_ENN": 5, "PCA_enabled": False, "ENN_enabled": True,
      "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 7, "PCA_enabled": False, "ENN_enabled": True,
     #  "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False,
+    #  "distance_metric": utilities.euclidean},
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False,
     #  "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
     #  "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
-    #  "distance_metric": utilities.euclidean},
-    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
+    # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": False,
     #  "distance_metric": utilities.euclidean},
     # {"k_KNN": 3, "k_ENN": 1, "PCA_enabled": False, "ENN_enabled": True,
     #  "distance_metric": utilities.euclidean},
@@ -58,7 +58,9 @@ if __name__ == '__main__':
         matrixCorrelation = dataWithoutClasses.corr()
 
     ennPlot = []
+    knnPlot = []
     ennData = []
+    knnData = []
     if findDataFlag:
         # Calculate two attributes for plotting using data
         xAttr, yAttr = utilities.calculateTwoSignificantAttributes(data, matrixCorrelation, corrT)
@@ -75,6 +77,8 @@ if __name__ == '__main__':
             utilities.printStart('KNN:' + str(config.get('k_KNN')) + ' - ENN:' + str(config.get('k_ENN')))
         else:
             utilities.printStart('KNN:' + str(config.get('k_KNN')))
+            data = dataAndClasses
+            classes = data.iloc[:, -1]
         if config.get('ENN_enabled'):
             # Recalculate new data and classes
             enn.fit(dataAndClasses)
@@ -93,23 +97,32 @@ if __name__ == '__main__':
             knn.evaluate()
         if config.get('ENN_enabled'):
             ennData.append(enn.metrics(xAttr, yAttr, debug, display))
-        knn.metrics(debug, display, xAttr, yAttr)
+        knnData.append(knn.metrics(debug, display, xAttr, yAttr, config.get('k_ENN') if config.get('ENN_enabled') else " "))
+        knnPlot.append(knn.knn_evaluation)
 
-    fig = make_subplots(rows=math.ceil(len(configs) / 2), cols=2,
-                        subplot_titles=[
-                            "KNN:" + str(configs[idx].get('k_KNN')) + " - ENN:" + str(configs[idx].get('k_ENN')) +
-                            " - Removed:" + str(ennData[idx][2]) +
-                            " - Old Data:" + str(ennData[idx][1])
-                            for idx in range(len(configs))
-                        ])
+    # TODO: MOVE TO FUNCTION
+    # PLOT KNN ENN SECTION
     symbols = random.choices(SymbolValidator().values, k=20)
-    for idx in range(len(ennPlot)):
-        by_class = ennPlot[idx].groupby('Classes')
+
+    figKNN = make_subplots(rows=math.ceil(len(configs) / 2), cols=2,
+                           subplot_titles=[
+
+                               ("KNN " + str(configs[idx].get('k_KNN'))
+                                + ' ENN: ' + str(configs[idx].get('k_ENN'))
+                                + " / " + str(knnData[idx]['accuracy']))
+                               if configs[idx].get('ENN_enabled') == True
+                               else
+                               ("KNN " + str(configs[idx].get('k_KNN'))
+                                + " / " + str(knnData[idx]['accuracy']))
+                               for idx in range(len(configs))
+                           ])
+    for idx in range(len(knnPlot)):
+        by_class = knnPlot[idx].groupby('Status')
         indexCol = (idx % 2) + 1
         indexRow = (idx // 2) + 1
         index = 0
         for groups, data in by_class:
-            fig.add_trace(
+            figKNN.add_trace(
                 go.Scatter(
                     name=groups,
                     x=data.iloc[:, 0],
@@ -118,12 +131,47 @@ if __name__ == '__main__':
                         symbol=symbols[index]
                     ),
                     marker_line_width=1,
-                    marker_size=5,
+                    marker_size= 10 if len(knnPlot)<=4 else 7,
                     mode="markers",
                 ),
                 row=indexRow, col=indexCol
             )
             index += 1
+    figKNN.update_layout(title_text="Resultados KNN con Archivo: " + path)
+    figKNN.show()
 
-    fig.update_layout(title_text="Archivo: " + path)
-    fig.show()
+    res_list = [i for i in range(len(configs)) if configs[i].get('ENN_enabled') == True]
+    figENN = make_subplots(rows=math.ceil(len(ennPlot) / 2), cols=2,
+                           subplot_titles=[
+                               "KNN:" + str(configs[res_list[idx]].get('k_KNN')) + " - ENN:" + str(
+                                   configs[res_list[idx]].get('k_ENN')) +
+                               " - Removed:" + str(ennData[idx][2]) +
+                               " - Data:" + str(ennData[idx][0]) +
+                               " - Accuracy:" + str(knnData[res_list[idx]]['accuracy'])
+                               for idx in range(len(ennPlot))
+                           ])
+
+    for idx in range(len(ennPlot)):
+        by_class = ennPlot[idx].groupby('Classes')
+        indexCol = (idx % 2) + 1
+        indexRow = (idx // 2) + 1
+        index = 0
+        for groups, data in by_class:
+            figENN.add_trace(
+                go.Scatter(
+                    name=groups,
+                    x=data.iloc[:, 0],
+                    y=data.iloc[:, 1],
+                    marker=dict(
+                        symbol=symbols[index]
+                    ),
+                    marker_line_width=1,
+                    marker_size=10 if len(ennPlot) <= 4 else 6,
+                    mode="markers+text",
+                ),
+                row=indexRow, col=indexCol
+            )
+            index += 1
+
+    figENN.update_layout(title_text="Resultados ENN con Archivo: " + path + " Data: " + str(ennData[0][1]))
+    figENN.show()

@@ -15,7 +15,11 @@ def euclidean(point, data):
 
 def plotData(display, data, xAttr, yAttr, classes):
     if display:
-        fig = px.scatter(data, x=str(xAttr), y=str(yAttr), symbol=classes, color=classes)
+        fig = px.scatter(data, x=str(xAttr), y=str(yAttr), symbol=classes, color=classes).update_traces(
+                                                                                      opacity=0.8,
+                                                                                      marker_size=10,
+                                                                                      marker_line_width=1)
+        # fig = px.strip(data, x=str(xAttr), y=str(yAttr), color=classes, stripmode="group")
         fig.update_layout(
             title="Data without classification",
             title_font=dict(size=20,
@@ -42,6 +46,11 @@ def calculateTwoSignificantAttributes(data, matrixCorrelation, corrT):
         xAttr = values[dataFrequencies.index(np.max(dataFrequencies))]["j"]
         yAttr = values[dataFrequencies.index(np.max(dataFrequencies))]["i"]
     return xAttr, yAttr
+
+
+def is_Enn_enable(config):
+    print(config)
+    return config[1].get('ENN_enabled') == True
 
 
 def getMajorClass(dataPoint, data, dist_metric=euclidean, k=3):
